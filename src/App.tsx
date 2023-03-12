@@ -76,12 +76,24 @@ function App() {
     useState(defaultLaunches)
   const [date, setDate] = useState('Newer')
   const [success, setSuccess] = useState('')
+  const [search, setSearch] = useState('')
 
   const resetFilters = () => {
     setDate('Newer')
     setSuccess('')
     setBackupLaunches(data)
     setLaunches(data)
+  }
+  const handleSearch = (event: SelectChangeEvent) => {
+    console.log(event.target.value)
+    let newData: ILaunch[] = []
+    data.map(
+      (launch): any =>
+        launch.date_local.split('T')[0].includes(event.target.value) &&
+        newData.push(launch)
+    )
+    setLaunches(newData)
+    setBackupLaunches(newData)
   }
   const handleDateSortChange = (event: SelectChangeEvent) => {
     setDate(event.target.value as string)
@@ -140,7 +152,10 @@ function App() {
               left: '16px',
             }}
           />
-          <Search placeholder='Search by a launch name...' />
+          <Search
+            placeholder='Search by a launch name...'
+            onChange={(e) => handleSearch(e)}
+          />
         </SearchBox>
         <SortHeading>Filter by:</SortHeading>
         <Box sx={{ minWidth: 100 }} style={{ marginRight: '20px' }}>
