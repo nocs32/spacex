@@ -6,6 +6,7 @@ import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select, { SelectChangeEvent } from '@mui/material/Select'
+import Button from '@mui/material/Button'
 import Tile from './components/Tile'
 import axios from 'axios'
 
@@ -65,11 +66,44 @@ const TilesContainer = styled.div`
 
 function App() {
   const defaultLaunches: ILaunch[] = []
+  const [data, SetData]: [ILaunch[], (launches: ILaunch[]) => void] =
+    useState(defaultLaunches)
+  const [backupLaunches, setBackupLaunches]: [
+    ILaunch[],
+    (launches: ILaunch[]) => void
+  ] = useState(defaultLaunches)
   const [launches, setLaunches]: [ILaunch[], (launches: ILaunch[]) => void] =
     useState(defaultLaunches)
-  const [date, setDate] = useState('')
-  const handleChange = (event: SelectChangeEvent) => {
+  const [date, setDate] = useState('Newer')
+  const [success, setSuccess] = useState('')
+
+  const resetFilters = () => {
+    setDate('Newer')
+    setSuccess('')
+    setBackupLaunches(data)
+    setLaunches(data)
+  }
+  const handleDateSortChange = (event: SelectChangeEvent) => {
     setDate(event.target.value as string)
+    let data: any = backupLaunches.slice(0).reverse()
+    setLaunches(data)
+    setBackupLaunches(data)
+  }
+  const handleStatusChange = (event: SelectChangeEvent) => {
+    let newData: ILaunch[] = []
+    if ((event.target.value as string) === 'Succeded') {
+      backupLaunches.map(
+        (launch): any => launch.success && newData.push(launch)
+      )
+      setLaunches(newData)
+      setSuccess('Succeded')
+    } else {
+      backupLaunches.map(
+        (launch): any => !launch.success && newData.push(launch)
+      )
+      setLaunches(newData)
+      setSuccess('Failed')
+    }
   }
   useEffect(() => {
     axios
@@ -79,13 +113,16 @@ function App() {
         },
       })
       .then((response) => {
-        setLaunches(response.data)
+        setLaunches(response.data.slice(0).reverse())
+        setBackupLaunches(response.data.slice(0).reverse())
+        SetData(response.data.slice(0).reverse())
       })
       .catch((ex) => {
         const error =
           ex.response.status === 404
             ? 'Resource Not found'
             : 'An unexpected error has occurred'
+        console.log(error)
       })
   }, [])
 
@@ -112,7 +149,7 @@ function App() {
             <Select
               value={date}
               label='Date'
-              onChange={handleChange}
+              onChange={handleDateSortChange}
               style={{
                 borderRadius: '30px',
                 height: '52px',
@@ -127,9 +164,9 @@ function App() {
           <FormControl fullWidth>
             <InputLabel>Status</InputLabel>
             <Select
-              value={date}
-              label='Date'
-              onChange={handleChange}
+              value={success}
+              label='Status'
+              onChange={handleStatusChange}
               style={{
                 borderRadius: '30px',
                 height: '52px',
@@ -140,6 +177,20 @@ function App() {
             </Select>
           </FormControl>
         </Box>
+        <Button
+          onClick={resetFilters}
+          variant='outlined'
+          style={{
+            marginLeft: '20px',
+            color: '#000',
+            borderColor: '#b5b5b5',
+            height: '52px',
+            width: '100px',
+            borderRadius: '30px',
+          }}
+        >
+          Reset
+        </Button>
       </Header>
       <Container>
         <MainHeading>SPACEX Launches</MainHeading>

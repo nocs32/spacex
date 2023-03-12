@@ -11,16 +11,35 @@ const TileBox = styled.a`
   align-items: center;
   border-radius: 50px;
   position: relative;
+  background-size: contain;
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.3);
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50px;
+  }
 `
 const TileHeading = styled.h3`
   font-size: 24px;
   font-weight: 700;
   color: #fff;
   margin-bottom: 10px;
+  position: relative;
+  z-index: 10;
 `
 const Status = styled.h5`
   font-size: 30px;
   font-weight: 700;
+  position: relative;
+  z-index: 10;
 `
 
 function Tile(props: {
@@ -32,9 +51,7 @@ function Tile(props: {
   return (
     <TileBox
       style={{
-        background: `no-repeat center linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${props.imageUrl}')`,
-        backgroundSize: 'contain',
-        backgroundPosition: 'center',
+        backgroundImage: `url('${props.imageUrl}')`,
       }}
       href={props.link}
       target='_blank'
