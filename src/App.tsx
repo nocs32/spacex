@@ -9,6 +9,8 @@ import Select, { SelectChangeEvent } from '@mui/material/Select'
 import Button from '@mui/material/Button'
 import Tile from './components/Tile'
 import axios from 'axios'
+import InfiniteScroll from 'react-infinite-scroll-component'
+import { Loading } from './components/Loading'
 
 interface ILaunch {
   date_local: string
@@ -76,13 +78,21 @@ function App() {
     useState(defaultLaunches)
   const [date, setDate] = useState('Newer')
   const [success, setSuccess] = useState('')
-  const [search, setSearch] = useState('')
 
   const resetFilters = () => {
     setDate('Newer')
     setSuccess('')
     setBackupLaunches(data)
     setLaunches(data)
+  }
+  const hasNextPage = () => {
+    console.log(launches.length)
+    console.log(data.length)
+    if (launches.length < data.length) {
+      return true
+    } else {
+      return false
+    }
   }
   const handleSearch = (event: SelectChangeEvent) => {
     console.log(event.target.value)
@@ -117,6 +127,10 @@ function App() {
       setSuccess('Failed')
     }
   }
+  const fetchNextPage = () => {
+    const tempData: ILaunch[] = data.slice(0, launches.length + 20)
+    setLaunches(tempData)
+  }
   useEffect(() => {
     axios
       .get<ILaunch[]>('https://api.spacexdata.com/v5/launches', {
@@ -125,8 +139,8 @@ function App() {
         },
       })
       .then((response) => {
-        setLaunches(response.data.slice(0).reverse())
-        setBackupLaunches(response.data.slice(0).reverse())
+        setLaunches(response.data.slice(0).reverse().slice(0, 20))
+        setBackupLaunches(response.data.slice(0).reverse().slice(0, 20))
         SetData(response.data.slice(0).reverse())
       })
       .catch((ex) => {
@@ -209,16 +223,23 @@ function App() {
       </Header>
       <Container>
         <MainHeading>SPACEX Launches</MainHeading>
-        <TilesContainer>
-          {launches.map((launch): any => (
-            <Tile
-              imageUrl={launch.links.patch.large}
-              link={launch.links.article}
-              date={launch.date_local.split('T')[0]}
-              success={launch.success}
-            ></Tile>
-          ))}
-        </TilesContainer>
+        <InfiniteScroll
+          dataLength={launches.length}
+          hasMore={hasNextPage()}
+          next={() => fetchNextPage()}
+          loader={<Loading />}
+        >
+          <TilesContainer>
+            {launches.map((launch): any => (
+              <Tile
+                imageUrl={launch.links.patch.large}
+                link={launch.links.article}
+                date={launch.date_local.split('T')[0]}
+                success={launch.success}
+              ></Tile>
+            ))}
+          </TilesContainer>
+        </InfiniteScroll>
       </Container>
     </>
   )
